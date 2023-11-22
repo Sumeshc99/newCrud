@@ -6,13 +6,40 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
   email: {
     type: String,
     required: true,
+    unique: true,
+    validate: {
+      validator: function (email) {
+        const emailRegx = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
+        return emailRegx.test(email);
+      },
+      message: "Email format is invalid",
+    },
   },
+
   password: {
     type: String,
     required: true,
+    validate: {
+      validator: function (password) {
+        return password.length >= 8;
+      },
+      message: "Password must be 8 charactor long",
+    },
+  },
+
+  confirmPassword: {
+    type: String,
+    required: true,
+    validate: {
+      validator: function (confirmPassword) {
+        return confirmPassword === this.password;
+      },
+      message: "Password does not matched",
+    },
   },
 });
 
@@ -27,6 +54,13 @@ userSchema.pre("save", async function (next) {
     next();
   } catch (error) {
     return next(error);
+  }
+});
+
+userSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    this.confirmPassword = undefined;
+    next();
   }
 });
 

@@ -20,6 +20,6 @@ mongoose
       console.log(`server is running on port ${PORT}`);
     });
   })
-  .catch((error) => console.log('server not connected'));
+  .catch((error) => console.log("server error"));
 
 app.use("/api/user", route);
