@@ -1,4 +1,6 @@
 import User from "../model/userModel.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export const fetch = async (req, res) => {
   try {
@@ -8,7 +10,7 @@ export const fetch = async (req, res) => {
     }
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ error: "internal server error" });
+    res.status(500).json(error.message);
   }
 };
 
@@ -23,7 +25,7 @@ export const create = async (req, res) => {
     const savedUser = await userData.save();
     res.status(200).json(savedUser);
   } catch (error) {
-    res.status(500).json({ error: "internal server error" });
+    res.status(500).json(error.message);
   }
 };
 
@@ -39,7 +41,7 @@ export const updateUser = async (req, res) => {
     });
     res.status(200).json(updateUser);
   } catch (error) {
-    res.status(500).json({ error: "internal server error" });
+    res.status(500).json(error.message);
   }
 };
 
@@ -54,6 +56,55 @@ export const deleteUser = async (req, res) => {
     await User.findByIdAndDelete(id);
     res.status(201).json({ message: "user deleted" });
   } catch (error) {
-    res.status(500).json({ error: "internal server error" });
+    res.status(500).json(error.message);
+  }
+};
+
+//login api
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const userExist = await User.findOne({ email });
+    if (!userExist) {
+      return res.status(400).json({ message: "User not exist" });
+    }
+
+    const isValidatePassword = await bcrypt.compare(
+      password,
+      userExist.password
+    );
+    if (!isValidatePassword) {
+      return res.status(401).json({ message: "email or password invalid" });
+    }
+
+    const tokenExist = req.cookies.token;
+    console.log("2222", req);
+    if (tokenExist) {
+      return res.status(400).json({ message: "already login" });
+    }
+
+    const token = jwt.sign({ userId: userExist._id }, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
+
+    res.cookie("token", token, { httpOnly: true, maxAge: 3600000 });
+    res.status(200).json({ message: "login successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "internal" });
+  }
+};
+
+//logout
+export const logoutUser = async (req, res) => {
+  try {
+    const tokenExist = req.cookies.token;
+    if (!tokenExist) {
+      return res.status(400).json({ message: "login required" });
+    }
+
+    res.clearCookie("token");
+    res.status(200).json({ message: "logout successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error });
   }
 };

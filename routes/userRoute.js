@@ -1,12 +1,21 @@
 import express from "express";
-import { create, deleteUser, fetch, updateUser } from "../controller/userController.js";
+import {
+  create,
+  deleteUser,
+  fetch,
+  loginUser,
+  logoutUser,
+  updateUser,
+} from "../controller/userController.js";
 
 const route = express.Router();
 
 route.get("/fetch", fetch);
 route.post("/create", create);
-route.put("/update/:id",updateUser)
-route.delete("/delete/:id",deleteUser)
+route.put("/update/:id", updateUser);
+route.delete("/delete/:id", deleteUser);
 
+route.post("/login", loginUser);
+route.get("/logout", logoutUser);
 
 export default route;
