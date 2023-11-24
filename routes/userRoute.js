@@ -6,7 +6,9 @@ import {
   loginUser,
   logoutUser,
   updateUser,
+  updateloginUser,
 } from "../controller/userController.js";
+import { authMiddleware } from "../middleware/authmiddleware.js";
 
 const route = express.Router();
 
@@ -17,5 +19,6 @@ route.delete("/delete/:id", deleteUser);
 
 route.post("/login", loginUser);
 route.get("/logout", logoutUser);
+route.put("/loginupdate/:id", authMiddleware, updateloginUser);
 
 export default route;

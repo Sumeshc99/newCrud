@@ -78,7 +78,6 @@ export const loginUser = async (req, res) => {
     }
 
     const tokenExist = req.cookies.token;
-    console.log("2222", req);
     if (tokenExist) {
       return res.status(400).json({ message: "already login" });
     }
@@ -90,7 +89,7 @@ export const loginUser = async (req, res) => {
     res.cookie("token", token, { httpOnly: true, maxAge: 3600000 });
     res.status(200).json({ message: "login successfully" });
   } catch (error) {
-    res.status(500).json({ error: "internal" });
+    res.status(500).json({ error: error });
   }
 };
 
@@ -104,6 +103,29 @@ export const logoutUser = async (req, res) => {
 
     res.clearCookie("token");
     res.status(200).json({ message: "logout successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
+
+export const updateloginUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const userExist = await User.findOne({ _id: id });
+    if (!userExist) {
+      return res.status(400).json({ message: "user not exist" });
+    }
+
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashPassword = await bcrypt.hash(req.body.password, salt);
+      req.body.password = hashPassword;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ error: error });
   }
